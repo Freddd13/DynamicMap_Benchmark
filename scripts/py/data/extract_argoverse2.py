@@ -30,6 +30,16 @@ from av2.geometry.camera.pinhole_camera import PinholeCamera
 from utils.pcdpy3 import save_pcd
 from utils import bc
 
+
+'''
+提取arg数据集的vlp32点云数据
+需要按代码放置数据集路径。
+点云被提取并转到激光雷达世界坐标系下，真值似乎从get_colored_info中获取放到pcd的rgb里？？但后续又没有特别的处理
+其全局位姿保存在pcd的viewpoint field中，四元数保存顺序为：w, x, y, z
+
+'''
+
+
 DATA_FOLDER = "/home/kin/bags/av2/Dynamic_Map/07YOTznatmYypvQYpzviEcU3yGPsyaGg__Spring_2020" # The one we used in paper
 SAVE_FOLDER = "/home/kin/data/av2/pcd"
 

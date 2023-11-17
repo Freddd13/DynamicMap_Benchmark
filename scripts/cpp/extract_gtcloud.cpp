@@ -22,6 +22,15 @@
 #include <pcl/kdtree/kdtree_flann.h>
 #include "timer.h"
 
+/*
+处理数据集pcd，生成一个1-0 GT map
+* Input: 一堆从数据集解析好真值intensity的pcd
+* Output: 一个拼好的、（可选下采样的）1-0 GT化的pcd
+
+- 这里的问题是将3米范围的车身点的GT都设成动态了，但对算法处理和评估时是否也考虑到将车身点设成动态？
+- 坐标变换代码注释了，默认了这些pcd已经转换到世界坐标系下
+*/
+
 int main(int argc, char* argv[]) {
 
 	google::InitGoogleLogging(argv[0]);
@@ -161,3 +170,9 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
+
+// 注意EGO points
+// 注意
+// transform the point cloud ---> If you already transform to world no need
+
+// extract kitti 存了带pose和intensity gt的pcd

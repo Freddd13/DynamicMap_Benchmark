@@ -9,6 +9,8 @@
 # For a copy, see <https://opensource.org/licenses/MIT>.
 '''
 
+
+
 import numpy as np
 from tabulate import tabulate
 
@@ -18,6 +20,14 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..' ))
 sys.path.append(BASE_DIR)
 from utils.pcdpy3 import load_pcd
 from utils import cnt_staticAdynamic, check_file_exists, bc
+
+'''
+评估所有算法的结果
+
+# 路径放置方法：#TODO
+'''
+
+
 
 # TODO: Change the parameters below to your own settings ====>>
 Result_Folder = "/home/kin/data/Dynamic_Papers_assets/BenchmarkPaper"
@@ -40,6 +50,7 @@ if __name__ == "__main__":
                 "Error: The number of points in et_pc_ and gt_pc_ do not match.\
                 \nThey must match for evaluation, if not Please run `export_eval_pcd`."
             
+            # Note: 由于export_eval_pcd是从gt生成的算法结果点云，所以两者大小是一样的，都是gt的点云大小
             num_et = cnt_staticAdynamic(et_pc_.np_data)
 
             correct_static = np.count_nonzero((et_pc_.np_data[:,3] == 0) * (gt_pc_.np_data[:,3] == 0))

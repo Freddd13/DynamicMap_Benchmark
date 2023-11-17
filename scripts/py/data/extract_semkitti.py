@@ -8,9 +8,19 @@
 # For a copy, see <https://opensource.org/licenses/MIT>.
 '''
 
+
 import sys, os
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..' ))
 sys.path.append(BASE_DIR)
+
+'''
+提取KITTI数据集第SEQUENCE序列的点云数据，每次只能提取一个序列
+需要按代码放置数据集路径。
+点云被提取并转到激光雷达世界坐标系下，强度保存在intensity中，其全局位姿保存在pcd的viewpoint field中。
+四元数保存顺序为：w, x, y, z
+
+'''
+
 
 
 import numpy as np

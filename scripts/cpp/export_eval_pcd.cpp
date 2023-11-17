@@ -22,6 +22,16 @@
 #include <glog/logging.h>
 #include "timer.h"
 
+/*
+生成结果地图
+ * Input: Algorithm Result PCD file, and GT PC file
+ * Output: raw map pcd file with label 0/1
+去除算法输入的是一个rawmap，所以输出应该也只是一个结果map的pcd，这里直接对应run_pcd_name
+
+将run_pcd_name构建kdtree， 对每个gt point，从est中找最近点，如果距离大于，min_dis_cnt_as_same，
+则认为这个点被去除了，所以这个点是et认为的动态，将这个gt点label设为1。
+注意这里虽然设的是gt cloud，但最后却将其导出为est cloud，这是比较时用gt cloud 维度，当然应该也可以用et去比较。
+*/
 
 int main(int argc, char** argv) {
     google::InitGoogleLogging(argv[0]);

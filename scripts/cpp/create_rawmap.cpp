@@ -23,6 +23,14 @@
 #include <glog/logging.h>
 #include "timer.h"
 
+/*
+生成带真值标签的算法输入
+* Input: PCD files with pose in PCD VIEWPOINT Field
+* Output: raw map pcd file
+生成原始未处理的地图，送给去动态的算法，没有下采样，后续是否下采样可以在算法中修改。
+
+*/
+
 using PointType = pcl::PointXYZI;
 // using PointType = pcl::PointXYZRGB;
 int main(int argc, char** argv) {
