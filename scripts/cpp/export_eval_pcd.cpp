@@ -23,7 +23,7 @@
 #include "timer.h"
 
 /*
-生成结果地图
+输入算法处理完的pcd，生成用于评估的GT文件
  * Input: Algorithm Result PCD file, and GT PC file
  * Output: raw map pcd file with label 0/1
 去除算法输入的是一个rawmap，所以输出应该也只是一个结果map的pcd，这里直接对应run_pcd_name

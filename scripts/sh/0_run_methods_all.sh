@@ -1,5 +1,5 @@
-data_folder=/home/kin
-benchmarks_path=/home/kin/DynamicMap_Benchmark/methods
+data_folder=/mnt/d/dataset/DUFOMap_provided_dynamic_pcd_w_gt
+benchmarks_path=/home/yxt/code/slam/dynamic_benchmark_ws/src/DynamicMap_Benchmark/methods
 
 # ====> build methods, you can also build them manually only once
 for method in octomap removert erasor
