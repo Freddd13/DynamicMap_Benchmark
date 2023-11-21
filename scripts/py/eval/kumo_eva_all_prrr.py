@@ -1,10 +1,7 @@
 
 '''
-输入采样率相同的gt与est点云
+输入采样率相同的gt与est点云, 输出算法pr rr f1 结果
 '''
-
-
-
 import numpy as np
 from tabulate import tabulate
 
@@ -26,11 +23,11 @@ voxel_size_ = 0.2
 if __name__ == "__main__":
     st_time = time()
     for seq in all_seqs:
-        gt_pcd_path = f"{Result_Folder}/{seq}/gt_cloud.pcd"
+        gt_pcd_path = f"{Result_Folder}/{seq}/prrr_export_gt.pcd"
         gt_pc_ = load_pcd(check_file_exists(gt_pcd_path))
         printed_data = []
         for algo in algorithms:
-            est_pcd_path = f"{Result_Folder}/{seq}/prrr_eval/{algo}_output_exportGT.pcd"
+            est_pcd_path = f"{Result_Folder}/{seq}/prrr_eval/{algo}_export_est.pcd"
             est_pc_ = load_pcd(check_file_exists(est_pcd_path))
 
             assert et_pc_.np_data.shape[0] == gt_pc_.np_data.shape[0] , \

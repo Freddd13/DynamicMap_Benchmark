@@ -50,4 +50,5 @@ create_executable(create_rawmap cpp/create_rawmap.cpp)
 create_executable(extract_gtcloud cpp/extract_gtcloud.cpp)
 create_executable(export_eval_pcd cpp/export_eval_pcd.cpp)
 
-create_executable(export_prrr_eval_pcd cpp/export_prrr_eval_pcd.cpp)
+create_executable(export_prrr_est_pcd cpp/export_prrr_est_pcd.cpp)
+create_executable(export_prrr_gt_pcd cpp/export_prrr_gt_pcd.cpp)

@@ -34,8 +34,7 @@
 input: 原始给的GT cloud、算法输出的结果pcd、voxelsize
 output: 输出到数据集目录/prrr_eval/下，同voxelsize下采样的gt与est pcd用于评测
 
-1. 将gt下采样voxelsize后保存至相应gt目录
-2. 为res点云下采样后找寻标签后保存至相应prrr_eval目录
+1. 从原始GT为res点云下采样后找寻标签后保存至相应prrr_eval目录
 */
 
 void voxelize_preserving_labels(pcl::PointCloud<pcl::PointXYZI>::ConstPtr src,
@@ -107,8 +106,6 @@ int main(int argc, char** argv) {
     }
     std::string export_est_pcd_name =
         run_pcd_name.substr(0, run_pcd_name.size() - 4) + "_export_est.pcd";
-    std::string export_gt_pcd_name =
-        run_pcd_name.substr(0, run_pcd_name.size() - 4) + "_export_gt.pcd";
     std::filesystem::path folder_path(pcd_folder);
     if (!std::filesystem::exists(folder_path / run_pcd_name)) {
         LOG(ERROR) << "File does not exist: " << run_pcd_name << " in " << pcd_folder;
@@ -129,9 +126,6 @@ int main(int argc, char** argv) {
 
 
     TIC;
-    pcl::KdTreeFLANN<pcl::PointXYZI> kdtree;
-    kdtree.setInputCloud(et_cloud);
-
     // 1. 对结果pcd下采样后，从gt cloud上给找回标签，存est
     pcl::PointCloud<pcl::PointXYZI>::Ptr et_cloud_downsampled(new pcl::PointCloud<pcl::PointXYZI>);
     voxelize_preserving_labels(et_cloud, et_cloud_downsampled, gt_cloud,
@@ -139,28 +133,14 @@ int main(int argc, char** argv) {
     et_cloud_downsampled->width = et_cloud_downsampled->points.size();
     et_cloud_downsampled->height = 1;
 
-
-    // 2. 对gt pcd下采样后，从原gt cloud上给找回标签，存gt
-    pcl::PointCloud<pcl::PointXYZI>::Ptr gt_cloud_downsampled(
-        new pcl::PointCloud<pcl::PointXYZI>);
-    voxelize_preserving_labels(gt_cloud, gt_cloud_downsampled, gt_cloud,
-                               voxelsize);
-    gt_cloud_downsampled->width = gt_cloud_downsampled->points.size();
-    gt_cloud_downsampled->height = 1;
-
-
     // 3. save est and gt
     if (!std::filesystem::exists(folder_path / "prrr_eval")) {
       std::filesystem::create_directory(folder_path / "prrr_eval");
     }
     pcl::io::savePCDFileBinary(folder_path / "prrr_eval" / export_est_pcd_name,
                                *et_cloud_downsampled);
-    pcl::io::savePCDFileBinary(folder_path / "prrr_eval" / export_gt_pcd_name,
-                               *gt_cloud_downsampled);
     LOG(INFO) << "Exported est PCD file: " << export_est_pcd_name << " in "
               << pcd_folder;
-    LOG(INFO) << "Exported gt PCD file: " << export_gt_pcd_name << " in "
-              << pcd_folder;
-    TOC("Export Estimate Label PCD file based on GT", true);
+    TOC("Export PRRR Estimate Label PCD file based on GT", true);
     return 0;
 }
