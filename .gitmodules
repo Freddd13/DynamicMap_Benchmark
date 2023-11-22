@@ -7,3 +7,10 @@
 [submodule "methods/removert"]
 	path = methods/removert
 	url = https://github.com/Kin-Zhang/removert.git
+[submodule "methods/mod_removert"]
+	path = methods/mod_removert
+	url = https://github.com/Freddd13/mod_removert.git
+[submodule "methods/kumo_dor"]
+	path = methods/kumo_dor
+	url = https://github.com/Freddd13/kumo_dor.git
+
