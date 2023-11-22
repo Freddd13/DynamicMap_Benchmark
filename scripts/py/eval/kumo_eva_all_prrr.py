@@ -14,10 +14,14 @@ from utils import cnt_staticAdynamic, check_file_exists, bc
 from calc_prrr import CalcPRRR
 
 # TODO: Change the parameters below to your own settings ====>>
-Result_Folder = "/mnt/d/dataset/DUFOMap_provided_dynamic_pcd_w_gt/data"
-algorithms = ["removert", "erasor", "octomap"]
-all_seqs = ["00", "05", "semindoor"]
+# Result_Folder = "/mnt/d/dataset/DUFOMap_provided_dynamic_pcd_w_gt/data"
+# algorithms = ["removert", "erasor", "octomap"]
+# all_seqs = ["00", "05", "semindoor"]
 # all_seqs = ["00", "05", "av2", "semindoor"]
+
+Result_Folder = "/mnt/d/dataset/DUFOMap_provided_dynamic_pcd_w_gt/data"
+algorithms = ["mod_removert"]
+all_seqs = ["00", "05", "semindoor"]
 
 voxel_size_ = 0.2
 # TODO: Change the parameters below to your own settings <<===
