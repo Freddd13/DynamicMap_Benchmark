@@ -1,0 +1,147 @@
+/**
+ * Copyright (C) 2022-now, RPL, KTH Royal Institute of Technology
+ * MIT License
+ * @author Kin ZHANG (https://kin-zhang.github.io/)
+ * @date: 2023-04-06 16:55
+ * @details: No ROS version, speed up the process
+ *
+ * Input: PCD files + Prior raw global map , check our benchmark in dufomap
+ * Output: Cleaned global map
+ */
+
+#include <glog/logging.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <string>
+
+#include "Removerter.h"
+
+/*
+输入：每帧的pcd（已经转换到全局），单个全局rawmap（包含真值）（pcd） , run_max ?
+输出：单个处理过的全局地图（pcd）（包含真值）
+rmvt config:
+  remove_resolution_list: [2.5, 2.2, 2] # for HDL 64E of KITTI dataset -> Same with ERASOR paper benchmarking
+  sequence_vfov: 50 # including upper and lower fovs, for example, KITTI's HDL64E is 2 + 24.9 ~ 27 deg. (so 25 + 25 =
+50) downsample_voxel_size: 0.01 # user parameter but recommend to use 0.05 to make sure an enough density (this value is
+related to the removing resolution's expected performance)
+
+首先设定rawmap
+排序点云后逐个去remove map中的dynamic
+每次先对当前scan下采样？？？投影并absdiff, 深度默认为较大值10000-》kFlagNoPOINT，index默认为0（有问题）
+投影的map是map_arranged_？没处理或限制范围？
+---
+最后会parse dynamic indices （parseDynamicIdx2PointCloud）
+因为不同scan可能去除相同points，所以需要先去重
+*/
+
+int main(int argc, char **argv) {
+    google::InitGoogleLogging(argv[0]);
+    google::InstallFailureSignalHandler();
+    FLAGS_colorlogtostderr = true;
+    google::SetStderrLogging(google::INFO);
+
+    if (argc < 3) {
+        LOG(ERROR) << "Usage: " << argv[0] << " [pcd_folder] [config_file]";
+        return 0;
+    }
+    std::string pcd_parent = argv[1]; // we assume that rawmap is in pcd_parent;
+    std::string config_file = argv[2];
+    int cnt = 1, run_max = 1;
+    // check if the config_file exists
+    if (!std::filesystem::exists(config_file)) {
+        LOG(ERROR) << "Config file does not exist: " << config_file;
+        return 0;
+    }
+    removert::MapUpdater map_updater(config_file);
+
+    // load raw map
+    // but no gt info will be used, it is just for the raw map in methods
+    std::string rawmap_path = pcd_parent + "/raw_map.pcd";// raw_map
+    if(!std::filesystem::exists(rawmap_path)){
+        LOG(WARNING) << "Raw map does not exist: " << rawmap_path << ", we will try to use the `gt_cloud` only for prior raw map.";
+        rawmap_path = pcd_parent + "/gt_cloud.pcd";
+    }
+    pcl::PointCloud<PointType>::Ptr rawmap(new pcl::PointCloud<PointType>);
+    pcl::io::loadPCDFile<PointType>(rawmap_path, *rawmap);
+    LOG(INFO) << "Raw map loaded, size: " << rawmap->size();
+
+    map_updater.setRawMap(rawmap);
+
+    std::vector<std::string> filenames;
+    for (const auto &entry : std::filesystem::directory_iterator(std::filesystem::path(pcd_parent) / "pcd")) {
+        filenames.push_back(entry.path().string());
+    }
+
+    // sort the filenames
+    std::sort(filenames.begin(), filenames.end());
+    int total = filenames.size();
+    if (argc > 3) {
+        run_max = std::stoi(argv[3]);
+        if (run_max == -1) {
+            LOG(INFO) << "We will run all the frame in sequence, the total "
+                         "number is: "
+                      << total;
+            run_max = total + 1;
+        }
+    }
+    LOG(INFO) << "rm res len: " << map_updater.cfg_.remove_resolution_list_.size();
+    for (float _rm_res : map_updater.cfg_.remove_resolution_list_) {
+        for (const auto &filename : filenames) {
+            if (cnt > 1) {
+                std::ostringstream log_msg;
+                log_msg << "(" << cnt << "/" << run_max << ") Processing: " << filename << " Time Cost: "
+                        << map_updater.timing.lastSeconds("1. Covert DepthI") +
+                               map_updater.timing.lastSeconds("2. Compare Image") +
+                               map_updater.timing.lastSeconds("3. Get DynamicId")
+                        << "s";
+                std::string spaces(10, ' ');
+                log_msg << spaces;
+                std::cout << "\r" << log_msg.str() << std::flush;
+            }
+
+            if (filename.find(".pcd") == std::string::npos)
+                continue;
+            pcl::PointCloud<PointType>::Ptr pcd(new pcl::PointCloud<PointType>);
+            pcl::io::loadPCDFile<PointType>(filename, *pcd);
+            map_updater.run(pcd, _rm_res);  // run here <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<======================================================
+            cnt++;
+            if (cnt > run_max)
+                break;
+        }
+        // (kumo): Incorrect implementation: need to reset the map_arranged_!
+        LOG(INFO) << "\nFinished res: " << _rm_res;
+        cnt = 1; // refresh
+        // break;
+    }
+    map_updater.timing.start("4. Parse Idx2Pcd");
+    map_updater.parseDynamicIdx2PointCloud();
+    map_updater.timing.stop("4. Parse Idx2Pcd");
+
+    map_updater.timing.start("5. Write        ");
+    map_updater.saveMap(pcd_parent);
+    map_updater.timing.stop("5. Write        ");
+
+    // set print color
+    map_updater.timing.setColor("0. Read RawMap  ", ufo::Timing::boldYellowColor());
+    map_updater.timing.setColor("1. Covert DepthI", ufo::Timing::boldCyanColor());
+    map_updater.timing.setColor("2. Compare Image", ufo::Timing::boldMagentaColor());
+    map_updater.timing.setColor("3. Get DynamicId", ufo::Timing::boldGreenColor());
+    map_updater.timing.setColor("4. Parse Idx2Pcd", ufo::Timing::boldRedColor());
+    map_updater.timing.setColor("5. Write        ", ufo::Timing::boldRedColor());
+    printf("\nRemovert Timings:\n");
+    printf("\t Component\t\tTotal\tLast\tMean\tStDev\t Min\t Max\t Steps\n");
+    for (auto const &tag : map_updater.timing.tags()) {
+        printf("\t%s%s\t%5.2f\t%5.4f\t%5.4f\t%5.4f\t%5.4f\t%5.4f\t%6lu%s\n", map_updater.timing.color(tag).c_str(),
+               tag.c_str(), map_updater.timing.totalSeconds(tag), map_updater.timing.lastSeconds(tag),
+               map_updater.timing.meanSeconds(tag), map_updater.timing.stdSeconds(tag),
+               map_updater.timing.minSeconds(tag), map_updater.timing.maxSeconds(tag),
+               map_updater.timing.numSamples(tag), ufo::Timing::resetColor());
+    }
+
+    return 0;
+}
