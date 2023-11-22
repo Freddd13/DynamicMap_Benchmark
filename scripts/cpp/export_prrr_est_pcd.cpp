@@ -77,7 +77,7 @@ void voxelize_preserving_labels(pcl::PointCloud<pcl::PointXYZI>::ConstPtr src,
       //   std::cout << "intensity before: " <<
       //   ((*src)[pointIdxNKNSearch[0]].intensity) << std::endl;
       // }
-      updated.intensity = (*src)[pointIdxNKNSearch[0]].intensity;
+      updated.intensity = (*ref)[pointIdxNKNSearch[0]].intensity;
       ptr_reassigned->points.emplace_back(updated);
     }
   }
