@@ -9,7 +9,7 @@ do
 done
 
 # ====> run methods
-for seq_num in 00 05 semindoor av2
+for seq_num in av2
 do
     data_path=${data_folder}/data/${seq_num}
     echo "Processing sequence ${seq_num} ... in remover and erasor"
